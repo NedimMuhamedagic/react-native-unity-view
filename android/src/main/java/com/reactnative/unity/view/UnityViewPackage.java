@@ -25,6 +25,8 @@ public class UnityViewPackage implements ReactPackage {
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        return Collections.emptyList();
+        List<NativeModule> modules = new ArrayList<>();
+        modules.add(new UnityManager(reactContext));
+        return modules;
     }
 }

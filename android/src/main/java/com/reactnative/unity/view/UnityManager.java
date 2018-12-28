@@ -24,12 +24,12 @@ public class UnityManager extends ReactContextBaseJavaModule implements UnityEve
 
     @ReactMethod
     public void pause() {
-        UnityUtils.getPlayer().pause();
+        UnityUtils.pause();
     }
 
     @ReactMethod
     public void resume() {
-        UnityUtils.getPlayer().resume();
+        UnityUtils.resume();
     }
 
     @ReactMethod

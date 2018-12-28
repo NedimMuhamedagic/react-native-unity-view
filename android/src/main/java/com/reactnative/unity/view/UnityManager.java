@@ -8,6 +8,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.Promise;
 
 public class UnityManager extends ReactContextBaseJavaModule implements UnityEventListener {
 
@@ -29,6 +30,21 @@ public class UnityManager extends ReactContextBaseJavaModule implements UnityEve
     @ReactMethod
     public void resume() {
         UnityUtils.getPlayer().resume();
+    }
+
+    @ReactMethod
+    public void isReady(Promise promise) {
+        promise.resolve(UnityUtils.isUnityReady());
+    }
+
+    @ReactMethod
+    public void createUnity(final Promise promise) {
+        UnityUtils.createPlayer(getCurrentActivity(), new UnityUtils.CreateCallback() {
+            @Override
+            public void onReady() {
+                promise.resolve(true);
+            }
+        });
     }
 
     @Override

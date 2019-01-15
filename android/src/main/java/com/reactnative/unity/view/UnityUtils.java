@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.os.Build;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
@@ -44,11 +45,13 @@ public class UnityUtils {
         return _isUnityPaused;
     }
 
-    public static void createPlayer(final Activity activity, final CreateCallback callback) {
-        if (unityPlayer != null) {
-            callback.onReady();
-            return;
-        }
+    public static void createPlayer(final Activity activity, final CreateCallback callback ) {
+        Log.w("react-native-unity-view", "createPlayer");
+
+//        if (unityPlayer != null) {
+//            callback.onReady();
+//            return;
+//        }
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -88,6 +91,7 @@ public class UnityUtils {
         if (!_isUnityReady) {
             return;
         }
+        Log.w("react-native-unity-view", "postMessage " + gameObject + ", methodName:" + methodName);
         UnityPlayer.UnitySendMessage(gameObject, methodName, message);
     }
 
@@ -109,10 +113,13 @@ public class UnityUtils {
      * Invoke by unity C#
      */
     public static void onUnityMessage(String message) {
+        Log.w("react-native-unity-view", "onUnityMessage:" + message + ", listener:" + mUnityEventListeners.size());
         for (UnityEventListener listener : mUnityEventListeners) {
             try {
                 listener.onMessage(message);
             } catch (Exception e) {
+                Log.e("react-native-unity-view", "onUnityMessage:" + e.toString() );
+                e.printStackTrace();
             }
         }
     }

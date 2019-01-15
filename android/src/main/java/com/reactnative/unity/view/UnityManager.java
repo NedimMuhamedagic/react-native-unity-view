@@ -1,5 +1,7 @@
 package com.reactnative.unity.view;
 
+import android.util.Log;
+
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
@@ -15,6 +17,14 @@ public class UnityManager extends ReactContextBaseJavaModule implements UnityEve
     public UnityManager(ReactApplicationContext reactContext) {
         super(reactContext);
         UnityUtils.addUnityEventListener(this);
+        Log.w("react-native-unity-view", "UnityManager init");
+
+    }
+
+    @Override
+    public void onCatalystInstanceDestroy() {
+        Log.w("react-native-unity-view", "onCatalystInstanceDestroy");
+        UnityUtils.removeUnityEventListener(this);
     }
 
     @Override

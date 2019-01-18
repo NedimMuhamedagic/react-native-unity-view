@@ -82,6 +82,13 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
         }
     }
 
+    @Override
+    public void onHostDestroy() {
+        if (UnityUtils.isUnityReady()) {
+            UnityUtils.getPlayer().quit();
+        }
+    }
+
     private void restoreUnityUserState() {
 //         restore the unity player state
 //         if (UnityUtils.isUnityPaused()) {

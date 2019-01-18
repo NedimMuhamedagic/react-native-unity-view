@@ -1,6 +1,7 @@
 package com.reactnative.unity.view;
 
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -35,6 +36,8 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     protected UnityView createViewInstance(ThemedReactContext reactContext) {
+        Log.w("react-native-unity-view", "createViewInstance");
+
         final UnityView view = new UnityView(reactContext);
         view.addOnAttachStateChangeListener(this);
 
@@ -53,12 +56,16 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     public void onDropViewInstance(UnityView view) {
+        Log.w("react-native-unity-view", "onDropViewInstance");
+
         view.removeOnAttachStateChangeListener(this);
         super.onDropViewInstance(view);
     }
 
     @Override
     public void onHostResume() {
+        Log.w("react-native-unity-view", "onHostResume");
+
         if (UnityUtils.isUnityReady()) {
             UnityUtils.getPlayer().resume();
             restoreUnityUserState();
@@ -67,16 +74,11 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     public void onHostPause() {
+        Log.w("react-native-unity-view", "onHostPause");
+
         if (UnityUtils.isUnityReady()) {
             // Don't use UnityUtils.pause()
             UnityUtils.getPlayer().pause();
-        }
-    }
-
-    @Override
-    public void onHostDestroy() {
-        if (UnityUtils.isUnityReady()) {
-            UnityUtils.getPlayer().quit();
         }
     }
 

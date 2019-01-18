@@ -46,12 +46,15 @@ public class UnityUtils {
     }
 
     public static void createPlayer(final Activity activity, final CreateCallback callback ) {
-        Log.w("react-native-unity-view", "createPlayer");
+        Log.w("react-native-unity-view", "createPlayer:" + activity);
 
-//        if (unityPlayer != null) {
-//            callback.onReady();
-//            return;
-//        }
+        if (unityPlayer != null) {
+            Log.w("react-native-unity-view", "already createPlayer");
+            callback.onReady();
+            return;
+        }
+
+        Log.w("react-native-unity-view", "do createPlayer");
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -97,17 +100,21 @@ public class UnityUtils {
 
     public static void pause() {
         if (unityPlayer != null) {
+            Log.w("react-native-unity-view", "pause");
             unityPlayer.pause();
             _isUnityPaused = true;
         }
     }
 
     public static void resume() {
+        Log.w("react-native-unity-view", "resume");
         if (unityPlayer != null) {
+            Log.w("react-native-unity-view", "do resume");
             unityPlayer.resume();
             _isUnityPaused = false;
         }
     }
+
 
     /**
      * Invoke by unity C#
@@ -133,6 +140,7 @@ public class UnityUtils {
     }
 
     public static void addUnityViewToBackground() {
+        Log.w("react-native-unity-view", "addUnityViewToBackground");
         if (unityPlayer == null) {
             return;
         }
@@ -148,6 +156,7 @@ public class UnityUtils {
     }
 
     public static void addUnityViewToGroup(ViewGroup group) {
+        Log.w("react-native-unity-view", "addUnityViewToGroup");
         if (unityPlayer == null) {
             return;
         }

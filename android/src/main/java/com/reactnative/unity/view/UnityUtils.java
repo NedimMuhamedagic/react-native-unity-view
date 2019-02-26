@@ -50,7 +50,32 @@ public class UnityUtils {
 
         if (unityPlayer != null) {
             Log.w("react-native-unity-view", "already createPlayer");
-            callback.onReady();
+//            callback.onReady();
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    activity.getWindow().setFormat(PixelFormat.RGBA_8888);
+                    int flag = activity.getWindow().getAttributes().flags;
+                    boolean fullScreen = false;
+                    if((flag & WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN) {
+                        fullScreen = true;
+                    }
+
+                    // start unity
+                    addUnityViewToBackground();
+                    unityPlayer.windowFocusChanged(true);
+                    unityPlayer.requestFocus();
+                    unityPlayer.resume();
+
+                    // restore window layout
+                    if (!fullScreen) {
+                        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    }
+                    _isUnityReady = true;
+                    callback.onReady();
+                }
+            });
             return;
         }
 

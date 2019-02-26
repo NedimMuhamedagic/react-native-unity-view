@@ -84,9 +84,8 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     public void onHostDestroy() {
-        if (UnityUtils.isUnityReady()) {
-            UnityUtils.getPlayer().quit();
-        }
+        Log.w("react-native-unity-view", "onHostDestroy");
+        UnityUtils.destory();
     }
 
     private void restoreUnityUserState() {

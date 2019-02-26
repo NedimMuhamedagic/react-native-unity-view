@@ -115,6 +115,16 @@ public class UnityUtils {
         }
     }
 
+    public static void destory() {
+        Log.w("react-native-unity-view", "destory");
+        if (unityPlayer != null) {
+            Log.w("react-native-unity-view", "do destory");
+            unityPlayer.quit();
+            unityPlayer = null;
+            _isUnityReady = false;
+        }
+    }
+
 
     /**
      * Invoke by unity C#

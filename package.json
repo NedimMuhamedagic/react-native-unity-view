@@ -1,7 +1,7 @@
 {
   "name": "react-native-unity-view",
-  "version": "1.2.6",
-  "description": "",
+  "version": "1.2.7",
+  "description": "react-native-unity-view made to work with RN60+",
   "main": "out/index.js",
   "typings": "out/index.d.ts",
   "homepage": "https://github.com/NedimMuhamedagic/react-native-unity-view/",

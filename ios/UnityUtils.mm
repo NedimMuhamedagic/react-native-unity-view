@@ -1,10 +1,10 @@
 #include "RegisterMonoModules.h"
 #include "RegisterFeatures.h"
 #include <csignal>
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "UnityInterface.h"
 #import "UnityUtils.h"
-#import <React/RCTLog.h>
+#import "UnityAppController.h"
 
 // Hack to work around iOS SDK 4.3 linker problem
 // we need at least one __TEXT, __const section entry in main application .o files
@@ -13,7 +13,16 @@ static const int constsection = 0;
 
 bool unity_inited = false;
 
+int g_argc;
+char** g_argv;
+
 void UnityInitTrampoline();
+
+extern "C" void InitArgs(int argc, char* argv[])
+{
+    g_argc = argc;
+    g_argv = argv;
+}
 
 extern "C" bool UnityIsInited()
 {
@@ -26,25 +35,13 @@ extern "C" void InitUnity()
         return;
     }
     unity_inited = true;
+
+    UnityInitStartupTime();
     
     @autoreleasepool
     {
-        NSProcessInfo *processInfo = [NSProcessInfo processInfo];
-        int count= (int)[processInfo.arguments count];
-        char** argv = new char*[count];
-        for(int i=0; i<count; i++) {
-            const char* arg = [processInfo.arguments[i] UTF8String];
-            argv[i] = new char[strlen(arg)];
-            strcpy(argv[i], arg);
-        }
-        
         UnityInitTrampoline();
-        UnityInitRuntime(count, argv);
-        
-        for(int i=0; i<count; i++){
-            delete[] argv[i];
-        }
-        delete[] argv;
+        UnityInitRuntime(g_argc, g_argv);
         
         RegisterMonoModules();
         NSLog(@"-> registered mono modules %p\n", &constsection);
@@ -80,22 +77,90 @@ extern "C" void UnityResumeCommand()
 @implementation UnityUtils
 
 static NSHashTable* mUnityEventListeners = [NSHashTable weakObjectsHashTable];
-static onUnityMsg mUnityMsgCallback;
+static BOOL _isUnityReady = NO;
+
++ (BOOL)isUnityReady
+{
+    return _isUnityReady;
+}
+
++ (void)handleAppStateDidChange:(NSNotification *)notification
+{
+    if (!_isUnityReady) {
+        return;
+    }
+    UnityAppController* unityAppController = GetAppController();
+    
+    UIApplication* application = [UIApplication sharedApplication];
+    
+    if ([notification.name isEqualToString:UIApplicationWillResignActiveNotification]) {
+        [unityAppController applicationWillResignActive:application];
+    } else if ([notification.name isEqualToString:UIApplicationDidEnterBackgroundNotification]) {
+        [unityAppController applicationDidEnterBackground:application];
+    } else if ([notification.name isEqualToString:UIApplicationWillEnterForegroundNotification]) {
+        [unityAppController applicationWillEnterForeground:application];
+    } else if ([notification.name isEqualToString:UIApplicationDidBecomeActiveNotification]) {
+        [unityAppController applicationDidBecomeActive:application];
+    } else if ([notification.name isEqualToString:UIApplicationWillTerminateNotification]) {
+        [unityAppController applicationWillTerminate:application];
+    } else if ([notification.name isEqualToString:UIApplicationDidReceiveMemoryWarningNotification]) {
+        [unityAppController applicationDidReceiveMemoryWarning:application];
+    }
+}
+
++ (void)listenAppState
+{
+    for (NSString *name in @[UIApplicationDidBecomeActiveNotification,
+                             UIApplicationDidEnterBackgroundNotification,
+                             UIApplicationWillTerminateNotification,
+                             UIApplicationWillResignActiveNotification,
+                             UIApplicationWillEnterForegroundNotification,
+                             UIApplicationDidReceiveMemoryWarningNotification]) {
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleAppStateDidChange:)
+                                                     name:name
+                                                   object:nil];
+    }
+}
+
++ (void)createPlayer:(void (^)(void))completed
+{
+    if (_isUnityReady) {
+        completed();
+        return;
+    }
+    
+    [[NSNotificationCenter defaultCenter] addObserverForName:@"UnityReady" object:nil queue:[NSOperationQueue mainQueue]  usingBlock:^(NSNotification * _Nonnull note) {
+        _isUnityReady = YES;
+        completed();
+    }];
+    
+    if (UnityIsInited()) {
+        return;
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIApplication* application = [UIApplication sharedApplication];
+        
+        // Always keep RN window in top
+        application.keyWindow.windowLevel = UIWindowLevelNormal + 1;
+        
+        InitUnity();
+        
+        UnityAppController *controller = GetAppController();
+        [controller application:application didFinishLaunchingWithOptions:nil];
+        [controller applicationDidBecomeActive:application];
+        
+        [UnityUtils listenAppState];
+    });
+}
 
 extern "C" void onUnityMessage(const char* message)
 {
     for (id<UnityEventListener> listener in mUnityEventListeners) {
         [listener onMessage:[NSString stringWithUTF8String:message]];
     }
-    
-    if (mUnityMsgCallback) {
-        mUnityMsgCallback([NSString stringWithUTF8String:message]);
-    }
-}
-
-extern "C" void logToRN(const char* debugMessage, NSInteger logLevel)
-{
-    _RCTLog((RCTLogLevel)logLevel, [NSString stringWithUTF8String:debugMessage]);
 }
 
 + (void)addUnityEventListener:(id<UnityEventListener>)listener
@@ -108,8 +173,4 @@ extern "C" void logToRN(const char* debugMessage, NSInteger logLevel)
     [mUnityEventListeners removeObject:listener];
 }
 
-+ (void)setUnityMsgCallback:(onUnityMsg)callback
-{
-    mUnityMsgCallback = callback;
-}
 @end

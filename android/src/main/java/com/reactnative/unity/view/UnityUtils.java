@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.os.Build;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
@@ -45,41 +44,11 @@ public class UnityUtils {
         return _isUnityPaused;
     }
 
-    public static void createPlayer(final Activity activity, final CreateCallback callback ) {
-        Log.w("react-native-unity-view", "createPlayer:" + activity);
-
+    public static void createPlayer(final Activity activity, final CreateCallback callback) {
         if (unityPlayer != null) {
-            Log.w("react-native-unity-view", "already createPlayer");
-//            callback.onReady();
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    activity.getWindow().setFormat(PixelFormat.RGBA_8888);
-                    int flag = activity.getWindow().getAttributes().flags;
-                    boolean fullScreen = false;
-                    if((flag & WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN) {
-                        fullScreen = true;
-                    }
-
-                    // start unity
-                    addUnityViewToBackground();
-                    unityPlayer.windowFocusChanged(true);
-                    unityPlayer.requestFocus();
-                    unityPlayer.resume();
-
-                    // restore window layout
-                    if (!fullScreen) {
-                        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                    }
-                    _isUnityReady = true;
-                    callback.onReady();
-                }
-            });
+            callback.onReady();
             return;
         }
-
-        Log.w("react-native-unity-view", "do createPlayer");
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -119,49 +88,31 @@ public class UnityUtils {
         if (!_isUnityReady) {
             return;
         }
-        Log.w("react-native-unity-view", "postMessage " + gameObject + ", methodName:" + methodName);
         UnityPlayer.UnitySendMessage(gameObject, methodName, message);
     }
 
     public static void pause() {
         if (unityPlayer != null) {
-            Log.w("react-native-unity-view", "pause");
             unityPlayer.pause();
             _isUnityPaused = true;
         }
     }
 
     public static void resume() {
-        Log.w("react-native-unity-view", "resume");
         if (unityPlayer != null) {
-            Log.w("react-native-unity-view", "do resume");
             unityPlayer.resume();
             _isUnityPaused = false;
         }
     }
 
-    public static void destory() {
-        Log.w("react-native-unity-view", "destory");
-        if (unityPlayer != null) {
-            Log.w("react-native-unity-view", "do destory");
-            unityPlayer.quit();
-            unityPlayer = null;
-            _isUnityReady = false;
-        }
-    }
-
-
     /**
      * Invoke by unity C#
      */
     public static void onUnityMessage(String message) {
-        Log.w("react-native-unity-view", "onUnityMessage:" + message + ", listener:" + mUnityEventListeners.size());
         for (UnityEventListener listener : mUnityEventListeners) {
             try {
                 listener.onMessage(message);
             } catch (Exception e) {
-                Log.e("react-native-unity-view", "onUnityMessage:" + e.toString() );
-                e.printStackTrace();
             }
         }
     }
@@ -175,7 +126,6 @@ public class UnityUtils {
     }
 
     public static void addUnityViewToBackground() {
-        Log.w("react-native-unity-view", "addUnityViewToBackground");
         if (unityPlayer == null) {
             return;
         }
@@ -191,7 +141,6 @@ public class UnityUtils {
     }
 
     public static void addUnityViewToGroup(ViewGroup group) {
-        Log.w("react-native-unity-view", "addUnityViewToGroup");
         if (unityPlayer == null) {
             return;
         }

@@ -1,7 +1,6 @@
 package com.reactnative.unity.view;
 
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -36,8 +35,6 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     protected UnityView createViewInstance(ThemedReactContext reactContext) {
-        Log.w("react-native-unity-view", "createViewInstance");
-
         final UnityView view = new UnityView(reactContext);
         view.addOnAttachStateChangeListener(this);
 
@@ -56,16 +53,12 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     public void onDropViewInstance(UnityView view) {
-        Log.w("react-native-unity-view", "onDropViewInstance");
-
         view.removeOnAttachStateChangeListener(this);
         super.onDropViewInstance(view);
     }
 
     @Override
     public void onHostResume() {
-        Log.w("react-native-unity-view", "onHostResume");
-
         if (UnityUtils.isUnityReady()) {
             UnityUtils.getPlayer().resume();
             restoreUnityUserState();
@@ -74,8 +67,6 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     public void onHostPause() {
-        Log.w("react-native-unity-view", "onHostPause");
-
         if (UnityUtils.isUnityReady()) {
             // Don't use UnityUtils.pause()
             UnityUtils.getPlayer().pause();
@@ -84,23 +75,24 @@ public class UnityViewManager extends SimpleViewManager<UnityView> implements Li
 
     @Override
     public void onHostDestroy() {
-        Log.w("react-native-unity-view", "onHostDestroy");
-        UnityUtils.destory();
+        if (UnityUtils.isUnityReady()) {
+            UnityUtils.getPlayer().quit();
+        }
     }
 
     private void restoreUnityUserState() {
-//         restore the unity player state
-//         if (UnityUtils.isUnityPaused()) {
-//             Handler handler = new Handler();
-//             handler.postDelayed(new Runnable() {
-//                 @Override
-//                 public void run() {
-//                     if (UnityUtils.getPlayer() != null) {
-//                         UnityUtils.getPlayer().pause();
-//                     }
-//                 }
-//             }, 300); //TODO: 300 is the right one?
-//         }
+        // restore the unity player state
+        if (UnityUtils.isUnityPaused()) {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (UnityUtils.getPlayer() != null) {
+                        UnityUtils.getPlayer().pause();
+                    }
+                }
+            }, 300); //TODO: 300 is the right one?
+        }
     }
 
     @Override
